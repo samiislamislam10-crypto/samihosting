@@ -12,3 +12,7 @@ aiohttp
 cfonts
 flask
 flask_socketio
+Flask
+Flask-SocketIO
+gunicorn
+simple-websocket
