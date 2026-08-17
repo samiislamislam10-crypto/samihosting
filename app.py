@@ -7,7 +7,9 @@ from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "sami-yt-secret-key-2026")
-socketio = SocketIO(app, cors_allowed_origins="*")
+
+# SocketIO setup with threading fallback to prevent crashes on Railway
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 DATABASE = 'panel.db'
 
@@ -44,7 +46,6 @@ def init_db():
                 enabled INTEGER DEFAULT 1
             )
         ''')
-        # Default Admin Account setup
         admin = conn.execute("SELECT * FROM users WHERE username = 'admin'").fetchone()
         if not admin:
             conn.execute("INSERT INTO users (username, password, role) VALUES ('admin', 'changeme123', 'admin')")
@@ -60,19 +61,16 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# ==================== ADSENSE VERIFICATION ROUTES ====================
+# ==================== ADSENSE VERIFICATION ROUTE ====================
 
 @app.route('/ads.txt')
 def ads_txt():
-    # Google AdSense Crawler Verification File
-    content = "google.com, pub-3618481233219616, DIRECT, f08c47fec0942fa0"
-    return content, 200, {'Content-Type': 'text/plain'}
+    return "google.com, pub-3618481233219616, DIRECT, f08c47fec0942fa0", 200, {'Content-Type': 'text/plain'}
 
 # ==================== MAIN PAGE ROUTES ====================
 
 @app.route('/')
 def index():
-    # Fix: Directly render login.html instead of 302 redirect for AdSense Crawler
     if 'user_id' not in session:
         return render_template('login.html')
     return render_template('index.html', username=session.get('username'), role=session.get('role'))
@@ -175,9 +173,8 @@ def save_account():
 def process_control():
     data = request.json or {}
     action = data.get('action')
-    # Control logic placeholder for process management
     return jsonify({'status': 'success', 'action': action})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    socketio.run(app, host='0.0.0.0', port=port, debug=False)
+    socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
