@@ -1,1 +1,266 @@
-<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Create Account</title><script src="https://cdn.tailwindcss.com"></script><style>body{background:#05060a;color:#fff;font-family:Inter,system-ui;min-height:100vh;display:grid;place-items:center}.card{width:min(430px,92vw);padding:32px;border:1px solid #252d3d;border-radius:30px;background:#0c0f18;box-shadow:0 25px 100px #0008;animation:up .5s ease}input{width:100%;padding:15px;border-radius:15px;background:#07090f;border:1px solid #222c3e;color:#fff;outline:0}button{width:100%;padding:15px;border:0;border-radius:15px;background:linear-gradient(100deg,#ff5a1f,#ff2e55);color:#fff;font-weight:900}@keyframes up{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}</style></head><body><div class="card"><img src="/static/logo.png" class="w-20 h-20 rounded-full mx-auto"><h1 class="text-2xl font-black text-center mt-4">CREATE ACCOUNT</h1><div id="msg" class="hidden mt-4 p-3 rounded-xl bg-red-500/10 text-red-300 text-sm"></div><div class="space-y-3 mt-6"><input id="u" placeholder="Username"><input id="p" type="password" placeholder="Password (6+ characters)"><input id="c" type="password" placeholder="Confirm password"><button onclick="go()">CREATE ACCOUNT</button></div><a href="/login" class="block text-center text-gray-500 mt-5">← Login</a></div><script>async function go(){if(p.value!==c.value)return show('Passwords do not match');let r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u.value,password:p.value})});let d=await r.json();if(d.status==='success')location='/login';else show(d.message)}function show(x){msg.textContent=x;msg.classList.remove('hidden')}</script></body></html>
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SAMI-YT | Register</title>
+
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- ================= Google AdSense Meta Tag & Script ================= -->
+  <meta name="google-adsense-account" content="ca-pub-3618481233219616">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3618481233219616" crossorigin="anonymous"></script>
+
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
+    body {
+      background-color: #030712;
+      color: #f9fafb;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+    
+    /* Optimized Animated Glowing Background */
+    .glow-bg {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+      z-index: 0;
+      will-change: transform;
+    }
+    .glow-1 {
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(255,90,31,0.22) 0%, rgba(0,0,0,0) 70%);
+      top: -120px;
+      left: -120px;
+      animation: float 8s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+    }
+    .glow-2 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, rgba(0,0,0,0) 70%);
+      bottom: -100px;
+      right: -100px;
+      animation: float 10s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate-reverse;
+    }
+    @keyframes float {
+      0% { transform: translate3d(0, 0, 0) scale(1); }
+      100% { transform: translate3d(50px, 60px, 0) scale(1.08); }
+    }
+
+    /* Ultra Glassmorphism Card */
+    .glass-card {
+      position: relative;
+      z-index: 10;
+      width: min(440px, 92vw);
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.96) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Modern GPU Accelerated Input Fields */
+    .input-box {
+      background: rgba(3, 7, 18, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .input-box:focus-within {
+      border-color: #ff5a1f;
+      box-shadow: 0 0 0 3px rgba(255, 90, 31, 0.2);
+      background: rgba(3, 7, 18, 0.85);
+      transform: translateY(-1px);
+    }
+
+    /* Gradient Button Effects */
+    .btn-gradient {
+      background: linear-gradient(135deg, #ff5a1f 0%, #e11d48 100%);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 25px -6px rgba(255, 90, 31, 0.4);
+    }
+    .btn-gradient:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px -4px rgba(255, 90, 31, 0.6);
+      filter: brightness(1.1);
+    }
+    .btn-gradient:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .spinner {
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Background Glows -->
+  <div class="glow-bg glow-1"></div>
+  <div class="glow-bg glow-2"></div>
+
+  <!-- Register Container -->
+  <div class="glass-card p-8 sm:p-10 my-8">
+    <div class="text-center">
+      <div class="relative inline-block">
+        <img src="/static/logo.png" onerror="this.src='https://ui-avatars.com/api/?name=SAMI+YT&background=ff5a1f&color=fff'" class="w-16 h-16 rounded-2xl mx-auto object-cover ring-2 ring-orange-500/30 shadow-xl">
+        <span class="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-orange-500 border-2 border-gray-900"></span>
+        </span>
+      </div>
+      <h1 class="text-2xl font-black tracking-tight mt-4">CREATE ACCOUNT</h1>
+      <p class="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Join SAMI-YT Panel</p>
+    </div>
+
+    <!-- Alert Message Banner -->
+    <div id="msg" class="hidden mt-5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold flex items-center gap-2">
+      <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+      <span id="msg-text"></span>
+    </div>
+
+    <!-- Registration Form -->
+    <form onsubmit="go(event)" class="space-y-4 mt-6">
+      <div>
+        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Username</label>
+        <div class="input-box flex items-center rounded-xl px-3.5 py-3">
+          <i data-lucide="user" class="w-4 h-4 text-gray-400 shrink-0"></i>
+          <input id="u" type="text" required placeholder="Enter username..." class="w-full bg-transparent border-0 outline-none text-xs text-white pl-3 placeholder-gray-500">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Password</label>
+        <div class="input-box flex items-center rounded-xl px-3.5 py-3">
+          <i data-lucide="lock" class="w-4 h-4 text-gray-400 shrink-0"></i>
+          <input id="p" type="password" required placeholder="••••••••" class="w-full bg-transparent border-0 outline-none text-xs text-white pl-3 placeholder-gray-500">
+          <button type="button" onclick="togglePass('p', 'eye-p')" class="text-gray-400 hover:text-white transition-colors focus:outline-none">
+            <i id="eye-p" data-lucide="eye" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Confirm Password</label>
+        <div class="input-box flex items-center rounded-xl px-3.5 py-3">
+          <i data-lucide="shield-check" class="w-4 h-4 text-gray-400 shrink-0"></i>
+          <input id="c" type="password" required placeholder="••••••••" class="w-full bg-transparent border-0 outline-none text-xs text-white pl-3 placeholder-gray-500">
+          <button type="button" onclick="togglePass('c', 'eye-c')" class="text-gray-400 hover:text-white transition-colors focus:outline-none">
+            <i id="eye-c" data-lucide="eye" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <button id="btn" type="submit" class="btn-gradient w-full py-3.5 rounded-xl text-white font-black text-xs tracking-widest uppercase flex items-center justify-center gap-2 mt-2">
+        <span id="btn-text">REGISTER</span>
+        <div id="btn-spinner" class="spinner hidden"></div>
+      </button>
+    </form>
+
+    <div class="mt-6 pt-4 border-t border-white/5 text-center">
+      <a href="/login" class="inline-flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 font-bold transition-colors">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Login
+      </a>
+    </div>
+
+    <!-- AdSense Banner Unit -->
+    <div class="mt-6 p-2 rounded-xl bg-gray-900/50 border border-white/5 text-center">
+      <p class="text-[9px] text-gray-500 uppercase tracking-widest mb-1">Advertisement</p>
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-3618481233219616"
+           data-ad-slot="3232184448"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    function togglePass(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      lucide.createIcons();
+    }
+
+    async function go(e) {
+      e.preventDefault();
+      const u = document.getElementById('u').value.trim();
+      const p = document.getElementById('p').value;
+      const c = document.getElementById('c').value;
+      const msg = document.getElementById('msg');
+      const msgText = document.getElementById('msg-text');
+      const btn = document.getElementById('btn');
+      const btnText = document.getElementById('btn-text');
+      const btnSpinner = document.getElementById('btn-spinner');
+
+      if (p !== c) {
+        msgText.textContent = 'Passwords do not match!';
+        msg.classList.remove('hidden');
+        return;
+      }
+
+      msg.classList.add('hidden');
+      btn.disabled = true;
+      btnText.textContent = "PROCESSING...";
+      btnSpinner.classList.remove('hidden');
+
+      try {
+        let r = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p })
+        });
+        let d = await r.json();
+
+        if (d.status === 'success') {
+          btnText.textContent = "SUCCESS! REDIRECTING...";
+          setTimeout(() => { location.href = '/login'; }, 800);
+        } else {
+          msgText.textContent = d.message || "Registration failed.";
+          msg.classList.remove('hidden');
+          btn.disabled = false;
+          btnText.textContent = "REGISTER";
+          btnSpinner.classList.add('hidden');
+        }
+      } catch (err) {
+        msgText.textContent = "Network error. Please try again.";
+        msg.classList.remove('hidden');
+        btn.disabled = false;
+        btnText.textContent = "REGISTER";
+        btnSpinner.classList.add('hidden');
+      }
+    }
+  </script>
+</body>
+</html>
