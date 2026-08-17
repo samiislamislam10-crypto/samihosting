@@ -5,6 +5,14 @@ from pathlib import Path
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_socketio import SocketIO
 
+# app.py-এর যেকোনো স্থানে (route গুলোর সাথে) নিচের রুটটি যোগ করুন
+
+@app.route('/ads.txt')
+def ads_txt():
+    content = "google.com, pub-3618481233219616, DIRECT, f08c47fec0942fa0"
+    return content, 200, {'Content-Type': 'text/plain'}
+
+
 BASE = Path(__file__).resolve().parent
 DB_PATH = BASE / "panel.db"
 USERS_DIR = BASE / "user_data"
