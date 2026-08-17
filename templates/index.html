@@ -1,31 +1,305 @@
-<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>SAMI-YT Control</title><script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script><style>
-*{box-sizing:border-box}body{background:#05060a;color:#fff;font-family:Inter,system-ui}body:before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 10% 0%,#ff5a1f12,transparent 30%),radial-gradient(circle at 90% 10%,#5b63ff0c,transparent 30%);pointer-events:none}.glass{background:#0c0f18d9;border:1px solid #ffffff0d;backdrop-filter:blur(18px);box-shadow:0 18px 60px #0004}.card{border-radius:24px}.tab{transition:.22s}.tab:hover{transform:translateX(2px)}.active{background:#ff5a1f16;border-left:3px solid #ff5a1f}.console{height:380px;overflow:auto;background:#020307;border:1px solid #172033;border-radius:16px;font:12px/1.35 ui-monospace,SFMono-Regular,monospace;white-space:pre-wrap;word-break:break-word}.console div{padding:1px 0;border-bottom:1px solid #ffffff03}.btn{transition:.2s}.btn:hover{transform:translateY(-2px);filter:brightness(1.1)}section{animation:fade .28s ease}@keyframes fade{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}input{background:#05070d!important;border:1px solid #263148!important;color:#fff!important;outline:0!important}input:focus{border-color:#ff5a1f!important;box-shadow:0 0 0 4px #ff5a1f12!important}</style></head><body>
-<header class="sticky top-0 z-50 glass border-b border-white/10"><div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center"><div class="flex items-center gap-3"><img src="/static/logo.png" class="w-11 h-11 rounded-full ring-2 ring-orange-500"><div><b class="text-lg">SAMI-<span class="text-orange-500">YT</span></b><div class="text-[9px] tracking-[.25em] text-gray-500">CONTROL CENTER</div></div></div><div class="flex items-center gap-3"><span class="hidden sm:block text-xs text-gray-500">{{username}} · {{role}}</span><a href="/logout" class="px-4 py-2 rounded-xl bg-white/5 text-red-300 text-sm">Logout</a></div></div></header>
-<div class="max-w-7xl mx-auto p-4 grid lg:grid-cols-[230px_1fr] gap-4"><aside class="glass card p-3 h-fit lg:min-h-[calc(100vh-100px)]"><button class="tab active w-full text-left p-3 rounded-xl" onclick="show('dash',this)">🏠 Dashboard</button><button class="tab w-full text-left p-3 rounded-xl text-gray-400 mt-1" onclick="show('account',this)">🔐 SAMI.txt</button><button class="tab w-full text-left p-3 rounded-xl text-gray-400 mt-1" onclick="show('console',this)">🖥️ Console</button>{% if role=='admin' %}<button class="tab w-full text-left p-3 rounded-xl text-gray-400 mt-1" onclick="show('users',this)">👥 Users</button><button class="tab w-full text-left p-3 rounded-xl text-gray-400 mt-1" onclick="show('apis',this)">🌐 API Manager</button>{% endif %}<div class="mt-10 p-3 rounded-xl bg-orange-500/5 border border-orange-500/10 text-xs text-gray-500">Each user has an isolated runtime and credential file.</div></aside>
-<main class="space-y-4">
-<section id="dash"><div class="glass card p-6"><div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4"><div><div class="text-xs uppercase tracking-widest text-gray-500">Welcome</div><h1 class="text-3xl font-black mt-1">{{username}} 👋</h1><p class="text-gray-500 mt-1">Start, stop, restart and watch your process live.</p></div><span id="badge" class="px-4 py-2 rounded-full bg-red-500/10 text-red-300 text-sm font-bold">● STOPPED</span></div></div>
-<div class="grid md:grid-cols-3 gap-4 mt-4"><div class="glass card p-5"><span class="text-xs text-gray-500">STATUS</span><div id="stat" class="text-2xl font-black mt-2">Stopped</div></div><div class="glass card p-5"><span class="text-xs text-gray-500">BOT</span><div id="botname" class="text-2xl font-black mt-2">SAMI</div></div><div class="glass card p-5"><span class="text-xs text-gray-500">RUNTIME</span><div id="rt" class="text-2xl font-black mt-2">0s</div></div></div>
-<div class="glass card p-5 mt-4"><h2 class="font-black mb-4">⚡ Operations</h2><div class="grid grid-cols-3 gap-3"><button class="btn bg-green-600 rounded-xl p-4 font-black" onclick="control('start')">▶ START</button><button class="btn bg-red-600 rounded-xl p-4 font-black" onclick="control('stop')">■ STOP</button><button class="btn bg-orange-600 rounded-xl p-4 font-black" onclick="control('restart')">↻ RESTART</button></div></div></section>
-<section id="account" class="hidden"><div class="glass card p-6"><h2 class="text-xl font-black">🔐 SAMI.txt</h2><p class="text-gray-500 text-sm mt-1">Save UID/password first, then Start or Restart the process.</p><div class="grid md:grid-cols-3 gap-3 mt-6"><input id="bn" class="p-4 rounded-xl" placeholder="Bot name"><input id="uid" class="p-4 rounded-xl" placeholder="UID"><input id="pw" type="password" class="p-4 rounded-xl" placeholder="Password"></div><button onclick="saveAccount()" class="btn bg-orange-600 rounded-xl px-5 py-3 mt-4 font-black">SAVE CHANGES</button><div id="saved" class="text-xs text-green-400 mt-3"></div></div></section>
-<section id="console" class="hidden"><div class="glass card p-5"><div class="flex justify-between items-center mb-3"><div><h2 class="font-black">🖥️ Live Console</h2><p class="text-gray-500 text-xs">Logs appear here immediately when main.py writes to stdout/stderr.</p></div><button onclick="logs.innerHTML=''" class="bg-white/5 rounded-xl px-4 py-2 text-xs">CLEAR</button></div><div id="logs" class="console p-3"></div></div></section>
-{% if role=='admin' %}<section id="users" class="hidden"><div class="glass card p-5"><h2 class="text-xl font-black">👥 Users</h2><div id="ul" class="space-y-2 mt-4"></div></div></section><section id="apis" class="hidden"><div class="glass card p-5"><div class="flex justify-between"><div><h2 class="text-xl font-black">🌐 API Manager</h2><p class="text-gray-500 text-sm">Manage API base URLs used by your project.</p></div><button onclick="addApi()" class="bg-orange-600 rounded-xl px-4 py-2 font-black">+ API</button></div><div id="al" class="space-y-2 mt-4"></div></div></section>{% endif %}
-</main></div>
-<script>
-const MY_ID={{session['user_id']}};let started=0;const socket=io();
-function show(id,el){document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');if(id==='users')loadUsers();if(id==='apis')loadApis()}
-function esc(s){return String(s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
-async function api(u,o={}){let r=await fetch(u,{headers:{'Content-Type':'application/json'},...o});return r.json()}
-function status(x){badge.textContent=x?'● RUNNING':'● STOPPED';badge.className='px-4 py-2 rounded-full text-sm font-bold '+(x?'bg-green-500/10 text-green-300':'bg-red-500/10 text-red-300');stat.textContent=x?'Running':'Stopped';if(!x)started=0}
-async function load(){let d=await api('/api/me');bn.value=d.account.bot_name||'SAMI';uid.value=d.account.uid||'';pw.value=d.account.bot_password||'';botname.textContent=d.account.bot_name||'SAMI';status(d.running);if(d.running)started=Date.now()}
-async function saveAccount(){let d=await api('/api/account',{method:'POST',body:JSON.stringify({name:bn.value,uid:uid.value,password:pw.value})});if(d.status==='success'){saved.textContent='✓ SAMI.txt updated successfully';botname.textContent=bn.value||'SAMI'}else saved.textContent='✕ '+d.message}
-async function control(a){let d=await api('/api/control',{method:'POST',body:JSON.stringify({action:a})});if(d.status!=='success'){append('[ERROR] '+d.message);return}if(a==='stop')status(false);else{status(true);started=Date.now()}}
-function append(t){let x=document.createElement('div');x.textContent=t;logs.appendChild(x);logs.scrollTop=logs.scrollHeight}
-socket.on('console_log',d=>{if(d.user_id===MY_ID)append('['+d.time+'] '+d.text)})
-socket.on('runtime_status',d=>{if(d.user_id===MY_ID){status(d.running);if(d.running)started=started||Date.now()}})
-setInterval(()=>{rt.textContent=started?Math.floor((Date.now()-started)/1000)+'s':'0s'},1000);
-{% if role=='admin' %}async function loadUsers(){let a=await api('/api/admin/users');ul.innerHTML=a.map(x=>`<div class="p-4 rounded-xl bg-white/[.03] border border-white/5 flex justify-between"><div><b>${esc(x.username)}</b><div class="text-xs text-gray-500">${x.role} · ${esc(x.created_at)}</div></div><span class="${x.running?'text-green-400':'text-gray-500'}">${x.running?'● Running':'● Stopped'}</span></div>`).join('')}
-async function loadApis(){let a=await api('/api/admin/apis');al.innerHTML=a.map(x=>`<div class="p-4 rounded-xl bg-white/[.03] border border-white/5 flex justify-between gap-3"><div><b>${esc(x.name)}</b><div class="text-xs text-gray-500 break-all">${esc(x.base_url)}</div></div><button class="bg-white/5 rounded-xl px-3" onclick="editApi(${x.id})">EDIT</button></div>`).join('')||'<p class="text-gray-500">No APIs.</p>'}
-async function addApi(){let n=prompt('API name');if(!n)return;let b=prompt('Base URL');if(!b)return;await api('/api/admin/apis',{method:'POST',body:JSON.stringify({name:n,base_url:b})});loadApis()}
-async function editApi(id){let n=prompt('New API name');let b=prompt('New Base URL');if(!n||!b)return;await api('/api/admin/apis/'+id,{method:'PUT',body:JSON.stringify({name:n,base_url:b,enabled:true})});loadApis()}{% endif %}
-load();
-</script></body></html>
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SAMI-YT Control Center</title>
+  
+  <!-- Tailwind CSS, Socket.IO & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- ================= Google AdSense Script ================= -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3618481233219616" crossorigin="anonymous"></script>
+  <!-- ======================================================== -->
+
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; box-sizing: border-box; }
+    body { background-color: #030712; color: #fff; min-height: 100vh; }
+    body:before { content: ""; position: fixed; inset: 0; background: radial-gradient(circle at 10% 0%, #ff5a1f12, transparent 30%), radial-gradient(circle at 90% 10%, #5b63ff0c, transparent 30%); pointer-events: none; }
+    .glass { background: rgba(12, 15, 24, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(18px); box-shadow: 0 18px 60px rgba(0,0,0,0.4); }
+    .card { border-radius: 24px; }
+    .tab { transition: all 0.22s ease; }
+    .tab:hover { transform: translateX(3px); background: rgba(255,255,255,0.03); }
+    .active { background: rgba(255, 90, 31, 0.12) !important; border-left: 3px solid #ff5a1f; color: #fff !important; font-weight: 700; }
+    .console { height: 380px; overflow: auto; background: #020307; border: 1px solid #172033; border-radius: 16px; font: 12px/1.35 ui-monospace, SFMono-Regular, monospace; white-space: pre-wrap; word-break: break-word; }
+    .console div { padding: 2px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
+    .btn { transition: all 0.2s ease; }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    section { animation: fade .28s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    input { background: #05070d !important; border: 1px solid #263148 !important; color: #fff !important; outline: 0 !important; }
+    input:focus { border-color: #ff5a1f !important; box-shadow: 0 0 0 4px rgba(255, 90, 31, 0.12) !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="sticky top-0 z-50 glass border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <img src="/static/logo.png" onerror="this.src='https://ui-avatars.com/api/?name=SAMI+YT&background=ff5a1f&color=fff'" class="w-10 h-10 rounded-full ring-2 ring-orange-500">
+        <div>
+          <b class="text-lg">SAMI-<span class="text-orange-500">YT</span></b>
+          <div class="text-[9px] tracking-[.25em] text-gray-500 font-bold uppercase">Control Center</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="hidden sm:block text-xs font-medium text-gray-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">{{username}} · <span class="text-orange-400 capitalize">{{role}}</span></span>
+        <a href="/logout" class="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-sm font-semibold transition border border-rose-500/20 flex items-center gap-1.5">
+          <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid Layout -->
+  <div class="max-w-7xl mx-auto p-4 grid lg:grid-cols-[240px_1fr] gap-4">
+    
+    <!-- Sidebar -->
+    <aside class="glass card p-3 h-fit lg:min-h-[calc(100vh-100px)] flex flex-col justify-between">
+      <div class="space-y-1">
+        <button class="tab active w-full text-left p-3 rounded-xl flex items-center gap-2.5 text-gray-400 text-sm" onclick="show('dash',this)">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-orange-400"></i> Dashboard
+        </button>
+        <button class="tab w-full text-left p-3 rounded-xl flex items-center gap-2.5 text-gray-400 text-sm" onclick="show('account',this)">
+          <i data-lucide="key-round" class="w-4 h-4 text-orange-400"></i> SAMI.txt
+        </button>
+        <button class="tab w-full text-left p-3 rounded-xl flex items-center gap-2.5 text-gray-400 text-sm" onclick="show('console',this)">
+          <i data-lucide="terminal" class="w-4 h-4 text-orange-400"></i> Console
+        </button>
+        {% if role=='admin' %}
+        <button class="tab w-full text-left p-3 rounded-xl flex items-center gap-2.5 text-gray-400 text-sm" onclick="show('users',this)">
+          <i data-lucide="users" class="w-4 h-4 text-orange-400"></i> Users
+        </button>
+        <button class="tab w-full text-left p-3 rounded-xl flex items-center gap-2.5 text-gray-400 text-sm" onclick="show('apis',this)">
+          <i data-lucide="globe" class="w-4 h-4 text-orange-400"></i> API Manager
+        </button>
+        {% endif %}
+      </div>
+
+      <div class="mt-8">
+        <div class="p-3 rounded-xl bg-orange-500/5 border border-orange-500/10 text-xs text-gray-400 leading-relaxed">
+          💡 Each user runs in an isolated environment with separate credentials.
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="space-y-4">
+      
+      <!-- Dashboard Section -->
+      <section id="dash">
+        <div class="glass card p-6">
+          <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-widest text-gray-500">Welcome Back</div>
+              <h1 class="text-3xl font-black mt-1">{{username}} 👋</h1>
+              <p class="text-gray-400 text-sm mt-1">Manage process runtime & view live logs.</p>
+            </div>
+            <span id="badge" class="px-4 py-2 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 text-xs font-bold w-fit">● STOPPED</span>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-4 mt-4">
+          <div class="glass card p-5">
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">STATUS</span>
+            <div id="stat" class="text-2xl font-black mt-2">Stopped</div>
+          </div>
+          <div class="glass card p-5">
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">BOT NAME</span>
+            <div id="botname" class="text-2xl font-black mt-2 text-orange-400">SAMI</div>
+          </div>
+          <div class="glass card p-5">
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">RUNTIME</span>
+            <div id="rt" class="text-2xl font-black mt-2">0s</div>
+          </div>
+        </div>
+
+        <div class="glass card p-5 mt-4">
+          <h2 class="font-black text-lg mb-4 flex items-center gap-2"><i data-lucide="zap" class="w-5 h-5 text-orange-400"></i> Control Operations</h2>
+          <div class="grid grid-cols-3 gap-3">
+            <button class="btn bg-emerald-600 hover:bg-emerald-500 rounded-xl p-4 font-black text-white flex items-center justify-center gap-2" onclick="control('start')">
+              <i data-lucide="play" class="w-4 h-4"></i> START
+            </button>
+            <button class="btn bg-rose-600 hover:bg-rose-500 rounded-xl p-4 font-black text-white flex items-center justify-center gap-2" onclick="control('stop')">
+              <i data-lucide="square" class="w-4 h-4"></i> STOP
+            </button>
+            <button class="btn bg-orange-600 hover:bg-orange-500 rounded-xl p-4 font-black text-white flex items-center justify-center gap-2" onclick="control('restart')">
+              <i data-lucide="rotate-cw" class="w-4 h-4"></i> RESTART
+            </button>
+          </div>
+        </div>
+
+        <!-- Dashboard Bottom Ad Banner -->
+        <div class="glass card p-3 mt-4 text-center">
+          <p class="text-[9px] text-gray-500 uppercase tracking-widest mb-1">Sponsored</p>
+          <ins class="adsbygoogle"
+               style="display:block"
+               data-ad-client="ca-pub-3618481233219616"
+               data-ad-slot="3232184448"
+               data-ad-format="auto"
+               data-full-width-responsive="true"></ins>
+          <script>
+               (adsbygoogle = window.adsbygoogle || []).push({});
+          </script>
+        </div>
+      </section>
+
+      <!-- SAMI.txt Credentials Section -->
+      <section id="account" class="hidden">
+        <div class="glass card p-6">
+          <h2 class="text-xl font-black flex items-center gap-2"><i data-lucide="shield-check" class="w-5 h-5 text-orange-400"></i> SAMI.txt Configuration</h2>
+          <p class="text-gray-400 text-sm mt-1">Save your UID and password before launching the bot process.</p>
+          <div class="grid md:grid-cols-3 gap-3 mt-6">
+            <input id="bn" class="p-4 rounded-xl text-sm" placeholder="Bot name">
+            <input id="uid" class="p-4 rounded-xl text-sm" placeholder="UID">
+            <input id="pw" type="password" class="p-4 rounded-xl text-sm" placeholder="Password">
+          </div>
+          <button onclick="saveAccount()" class="btn bg-orange-600 hover:bg-orange-500 text-white rounded-xl px-6 py-3.5 mt-4 font-extrabold text-sm flex items-center gap-2">
+            <i data-lucide="save" class="w-4 h-4"></i> SAVE CHANGES
+          </button>
+          <div id="saved" class="text-xs font-semibold text-emerald-400 mt-3"></div>
+        </div>
+      </section>
+
+      <!-- Live Console Section -->
+      <section id="console" class="hidden">
+        <div class="glass card p-5">
+          <div class="flex justify-between items-center mb-3">
+            <div>
+              <h2 class="font-black text-lg flex items-center gap-2"><i data-lucide="terminal" class="w-5 h-5 text-orange-400"></i> Live Console Log</h2>
+              <p class="text-gray-400 text-xs mt-0.5">Displays stdout/stderr output in real-time from main.py.</p>
+            </div>
+            <button onclick="logs.innerHTML=''" class="bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl px-4 py-2 text-xs font-semibold">CLEAR</button>
+          </div>
+          <div id="logs" class="console p-3"></div>
+        </div>
+      </section>
+
+      {% if role=='admin' %}
+      <!-- Admin Users Section -->
+      <section id="users" class="hidden">
+        <div class="glass card p-5">
+          <h2 class="text-xl font-black mb-4">👥 Registered Users</h2>
+          <div id="ul" class="space-y-2"></div>
+        </div>
+      </section>
+
+      <!-- Admin API Manager Section -->
+      <section id="apis" class="hidden">
+        <div class="glass card p-5">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h2 class="text-xl font-black">🌐 API Manager</h2>
+              <p class="text-gray-400 text-xs">Configure external API base URLs.</p>
+            </div>
+            <button onclick="addApi()" class="bg-orange-600 hover:bg-orange-500 rounded-xl px-4 py-2 text-xs font-black text-white flex items-center gap-1">
+              <i data-lucide="plus" class="w-4 h-4"></i> ADD API
+            </button>
+          </div>
+          <div id="al" class="space-y-2"></div>
+        </div>
+      </section>
+      {% endif %}
+
+    </main>
+  </div>
+
+  <script>
+    lucide.createIcons();
+    const MY_ID = {{ session['user_id'] }};
+    let started = 0;
+    const socket = io();
+
+    function show(id, el) {
+      document.querySelectorAll('main section').forEach(x => x.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      el.classList.add('active');
+      if (id === 'users') loadUsers();
+      if (id === 'apis') loadApis();
+    }
+
+    function esc(s) { return String(s).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+    async function api(u, o = {}) { let r = await fetch(u, { headers: { 'Content-Type': 'application/json' }, ...o }); return r.json(); }
+
+    function status(x) {
+      badge.textContent = x ? '● RUNNING' : '● STOPPED';
+      badge.className = 'px-4 py-2 rounded-full text-xs font-bold border ' + (x ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-rose-500/10 text-rose-300 border-rose-500/20');
+      stat.textContent = x ? 'Running' : 'Stopped';
+      if (!x) started = 0;
+    }
+
+    async function load() {
+      let d = await api('/api/me');
+      bn.value = d.account.bot_name || 'SAMI';
+      uid.value = d.account.uid || '';
+      pw.value = d.account.bot_password || '';
+      botname.textContent = d.account.bot_name || 'SAMI';
+      status(d.running);
+      if (d.running) started = Date.now();
+    }
+
+    async function saveAccount() {
+      let d = await api('/api/account', { method: 'POST', body: JSON.stringify({ name: bn.value, uid: uid.value, password: pw.value }) });
+      if (d.status === 'success') {
+        saved.textContent = '✓ SAMI.txt updated successfully';
+        botname.textContent = bn.value || 'SAMI';
+      } else saved.textContent = '✕ ' + d.message;
+    }
+
+    async function control(a) {
+      let d = await api('/api/control', { method: 'POST', body: JSON.stringify({ action: a }) });
+      if (d.status !== 'success') {
+        append('[ERROR] ' + d.message);
+        return;
+      }
+      if (a === 'stop') status(false);
+      else { status(true); started = Date.now(); }
+    }
+
+    function append(t) {
+      let x = document.createElement('div');
+      x.textContent = t;
+      logs.appendChild(x);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    socket.on('console_log', d => { if (d.user_id === MY_ID) append('[' + d.time + '] ' + d.text); });
+    socket.on('runtime_status', d => { if (d.user_id === MY_ID) { status(d.running); if (d.running) started = started || Date.now(); } });
+    setInterval(() => { rt.textContent = started ? Math.floor((Date.now() - started) / 1000) + 's' : '0s'; }, 1000);
+
+    {% if role == 'admin' %}
+    async function loadUsers() {
+      let a = await api('/api/admin/users');
+      ul.innerHTML = a.map(x => `<div class="p-4 rounded-xl bg-white/[.02] border border-white/5 flex justify-between items-center"><div><b>${esc(x.username)}</b><div class="text-xs text-gray-500">${x.role} · ${esc(x.created_at)}</div></div><span class="${x.running ? 'text-emerald-400 font-semibold text-xs' : 'text-gray-500 text-xs'}">${x.running ? '● Running' : '● Stopped'}</span></div>`).join('');
+    }
+
+    async function loadApis() {
+      let a = await api('/api/admin/apis');
+      al.innerHTML = a.map(x => `<div class="p-4 rounded-xl bg-white/[.02] border border-white/5 flex justify-between items-center gap-3"><div><b>${esc(x.name)}</b><div class="text-xs text-gray-500 break-all">${esc(x.base_url)}</div></div><button class="bg-white/5 hover:bg-white/10 rounded-xl px-3 py-1.5 text-xs font-bold" onclick="editApi(${x.id})">EDIT</button></div>`).join('') || '<p class="text-gray-500 text-xs">No APIs configured.</p>';
+    }
+
+    async function addApi() {
+      let n = prompt('API name'); if (!n) return;
+      let b = prompt('Base URL'); if (!b) return;
+      await api('/api/admin/apis', { method: 'POST', body: JSON.stringify({ name: n, base_url: b }) });
+      loadApis();
+    }
+
+    async function editApi(id) {
+      let n = prompt('New API name');
+      let b = prompt('New Base URL');
+      if (!n || !b) return;
+      await api('/api/admin/apis/' + id, { method: 'PUT', body: JSON.stringify({ name: n, base_url: b, enabled: true }) });
+      loadApis();
+    }
+    {% endif %}
+
+    load();
+  </script>
+</body>
+  </html>
